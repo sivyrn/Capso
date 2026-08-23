@@ -870,6 +870,11 @@ final class CaptureCoordinator {
         dismissOverlay()
 
         let frozenScreens = captureFrozenScreens()
+        // Freeze first so an open system alert remains visible in the image
+        // being selected. Only then end its modal event loop, which releases
+        // pointer events for the overlay without removing the alert from the
+        // already-frozen desktop.
+        NotificationCenter.default.post(name: .capsoCaptureDidFreezeDesktop, object: nil)
         guard !frozenScreens.isEmpty else {
             showOverlay(mode: mode, areaSelected: areaSelected)
             return
@@ -1166,6 +1171,7 @@ final class CaptureCoordinator {
         isSelectionFlowStarting = false
         dismissSelectionOverlays()
         dismissFreezeWindows()
+        NotificationCenter.default.post(name: .capsoCaptureDidEnd, object: nil)
     }
 
     private func dismissSelectionOverlays() {
