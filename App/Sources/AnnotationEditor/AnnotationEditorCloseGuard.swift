@@ -1,13 +1,6 @@
 // App/Sources/AnnotationEditor/AnnotationEditorCloseGuard.swift
 import AppKit
 
-extension Notification.Name {
-    /// Posted after the desktop (including any system alert) has been frozen.
-    static let capsoCaptureDidFreezeDesktop = Notification.Name("capsoCaptureDidFreezeDesktop")
-    /// Posted after the interactive capture overlay has been dismissed.
-    static let capsoCaptureDidEnd = Notification.Name("capsoCaptureDidEnd")
-}
-
 @MainActor
 enum AnnotationEditorCloseGuard {
     private static var suspendedAlertPresenter: AnnotationEditorSystemAlertPresenter?
@@ -17,6 +10,10 @@ enum AnnotationEditorCloseGuard {
     }
 
     static func presentDiscardAlert(above window: NSWindow?) -> Bool {
+        if suspendedAlertPresenter?.bringForwardIfVisible() == true {
+            return false
+        }
+
         let presenter = AnnotationEditorSystemAlertPresenter(above: window)
         switch presenter.runModal() {
         case .confirmed:
@@ -135,6 +132,16 @@ fileprivate final class AnnotationEditorSystemAlertPresenter: NSObject {
                 self?.resumeAfterCapture()
             }
         }
+    }
+
+    /// Returns true when this is the existing discard alert for the editor.
+    /// A parked alert must remain behind the capture overlay; a modeless alert
+    /// can be brought forward instead of creating another `NSAlert`.
+    func bringForwardIfVisible() -> Bool {
+        guard alert.window.isVisible else { return false }
+        guard !isParked else { return true }
+        alert.window.makeKeyAndOrderFront(nil)
+        return true
     }
 
 #if DEBUG

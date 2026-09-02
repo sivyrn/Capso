@@ -52,6 +52,12 @@ final class AnnotationEditorCloseGuardTests: XCTestCase {
         XCTAssertNil(NSApp.modalWindow)
         XCTAssertTrue(AnnotationEditorCloseGuard.isModelessAlertVisibleForTesting)
 
+        // A second close request must reuse the restored modeless alert rather
+        // than presenting a second modal discard dialog on top of it.
+        XCTAssertFalse(AnnotationEditorCloseGuard.presentDiscardAlert(above: nil))
+        XCTAssertNil(NSApp.modalWindow)
+        XCTAssertTrue(AnnotationEditorCloseGuard.isModelessAlertVisibleForTesting)
+
         NotificationCenter.default.post(name: .capsoCaptureDidFreezeDesktop, object: nil)
         XCTAssertNil(NSApp.modalWindow)
         XCTAssertTrue(AnnotationEditorCloseGuard.isSuspendedAlertVisibleForTesting)
