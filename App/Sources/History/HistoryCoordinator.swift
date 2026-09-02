@@ -56,9 +56,7 @@ final class HistoryCoordinator {
             historyWindow.toggle()
             return
         }
-        let window = HistoryWindow(coordinator: self)
-        self.historyWindow = window
-        window.show()
+        showWindow()
     }
 
 #if DEBUG
